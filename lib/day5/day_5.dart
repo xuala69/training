@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/day4/models/todo_model.dart';
+import 'package:flutter_application_1/day5/add_todo_ui.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 //day 3 hi 29 dec 2022 a khawih
 
 //Notes:
@@ -15,8 +17,6 @@ class DayFive extends StatefulWidget {
 }
 
 class _DayFiveState extends State<DayFive> {
-  final titleController = TextEditingController();
-  final descriptionController = TextEditingController();
   List<TodoModel> todos = [];
 
   int count = 0;
@@ -70,11 +70,33 @@ class _DayFiveState extends State<DayFive> {
     //page a in close a, hawn leh a beisei awm tawhloh hunah a in call
   }
 
+  void markAsDone(int index) {
+    todos[index].done = true;
+    setState(() {});
+    saveData();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Day 5"),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showDialog(
+              context: context,
+              builder: (context) {
+                return AddTodoUI();
+              }).then((value) {
+            if (value != null) {
+              todos.add(value);
+              setState(() {});
+              saveData();
+            }
+          });
+        },
+        child: const Icon(Icons.add),
       ),
       body: Column(
         children: [
@@ -95,18 +117,35 @@ class _DayFiveState extends State<DayFive> {
                       title: Text(item.title),
                       subtitle: Text(item.description ?? "Not available"),
                       leading: Icon(
-                        Icons.verified_user,
+                        MdiIcons.checkAll,
                         color: item.done == true ? Colors.green : Colors.red,
                       ),
                       trailing: IconButton(
                         onPressed: () {
-                          todos[index].done = true;
-                          setState(() {});
-                          saveData();
+                          showDialog(
+                              context: context,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: const Text(
+                                      "Are you sure you want to complete the task?"),
+                                  actions: [
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: const Text("No")),
+                                    TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                          markAsDone(index);
+                                        },
+                                        child: const Text("Yes")),
+                                  ],
+                                );
+                              });
                         },
                         icon: const Icon(
-                          Icons.done_all,
-                          color: Colors.green,
+                          Icons.check_box_outline_blank,
                         ),
                       ),
                     ),
@@ -115,46 +154,6 @@ class _DayFiveState extends State<DayFive> {
               },
             ),
           ),
-          Container(
-            height: 130,
-            margin: const EdgeInsets.only(left: 5, right: 5, bottom: 20),
-            padding: const EdgeInsets.only(left: 5, right: 5),
-            color: Colors.grey,
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    children: [
-                      TextField(
-                        controller: titleController,
-                        decoration: const InputDecoration(labelText: "Title"),
-                      ),
-                      TextField(
-                        controller: descriptionController,
-                        decoration:
-                            const InputDecoration(labelText: "Description"),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () {
-                    TodoModel newItem = TodoModel(
-                      title: titleController.text,
-                      description: descriptionController.text,
-                      done: false,
-                    );
-                    todos.add(newItem);
-                    titleController.text = "";
-                    descriptionController.text = "";
-                    setState(() {});
-                    saveData();
-                  },
-                  icon: const Icon(Icons.send),
-                ),
-              ],
-            ),
-          )
         ],
       ),
     );
