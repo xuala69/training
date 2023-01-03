@@ -8,13 +8,13 @@ class TodoModel {
     required this.done,
   });
 
-  TodoModel.fromJson(Map<String, dynamic> json) {
+  TodoModel.fromMap(Map<String, dynamic> json) {
     title = json['title'];
     description = json['description'];
     done = json['done'];
   }
 
-  Map<String, dynamic> toJson() {
+  Map<String, dynamic> toMap() {
     return {
       "title": title,
       "description": description,
