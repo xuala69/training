@@ -1,6 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/day4/models/todo_model.dart';
-import 'package:flutter_application_1/day5/add_todo_ui.dart';
+import 'package:flutter_application_1/day6/new_todo.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 //day 3 hi 29 dec 2022 a khawih
@@ -9,14 +11,14 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 // TextField a controller hman tur a tir ah declare hmasak angai (line 14 ah declaration)
 // TextEditingController in TextField a text enter ang2 a lo store a, controller.text hmangin  access tur
 
-class DayFive extends StatefulWidget {
-  const DayFive({super.key});
+class DaySix extends StatefulWidget {
+  const DaySix({super.key});
 
   @override
-  State<DayFive> createState() => _DayFiveState();
+  State<DaySix> createState() => _DaySixState();
 }
 
-class _DayFiveState extends State<DayFive> {
+class _DaySixState extends State<DaySix> {
   List<TodoModel> todos = [];
 
   int count = 0;
@@ -79,21 +81,35 @@ class _DayFiveState extends State<DayFive> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Day 5"),
+        title: const Text("Day 6"),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return AddTodoUI();
-              }).then((value) {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+            return const NewTodoPage(
+              todo: null,
+            );
+          })).then((value) {
             if (value != null) {
+              print("returned value of page:$value");
               todos.add(value);
               setState(() {});
               saveData();
+            } else {
+              log("returned data from new TODO page :$value");
             }
           });
+          // showDialog(
+          //     context: context,
+          //     builder: (context) {
+          //       return AddTodoUI();
+          //     }).then((value) {
+          //   if (value != null) {
+          //     todos.add(value);
+          //     setState(() {});
+          //     saveData();
+          //   }
+          // });
         },
         child: const Icon(Icons.add),
       ),
@@ -107,9 +123,30 @@ class _DayFiveState extends State<DayFive> {
                 return Dismissible(
                   key: UniqueKey(),
                   onDismissed: (direction) {
-                    todos.removeAt(index);
-                    setState(() {});
-                    saveData();
+                    showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text(
+                                "Are you sure you want to delete the task?"),
+                            actions: [
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    setState(() {});
+                                  },
+                                  child: const Text("No")),
+                              TextButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    todos.removeAt(index);
+                                    setState(() {});
+                                    saveData();
+                                  },
+                                  child: const Text("Yes")),
+                            ],
+                          );
+                        });
                   },
                   child: Card(
                     child: ListTile(
@@ -119,6 +156,21 @@ class _DayFiveState extends State<DayFive> {
                         MdiIcons.checkAll,
                         color: item.done == true ? Colors.green : Colors.red,
                       ),
+                      onTap: () {
+                        Navigator.of(context)
+                            .push(MaterialPageRoute(builder: (context) {
+                          return NewTodoPage(todo: item);
+                        })).then((value) {
+                          if (value != null) {
+                            todos.removeAt(index);
+                            todos.insert(index, value);
+                            setState(() {});
+                            saveData();
+                          } else {
+                            log("returned data from new TODO page :$value");
+                          }
+                        });
+                      },
                       trailing: IconButton(
                         onPressed: () {
                           showDialog(
