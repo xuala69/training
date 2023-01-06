@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/day4/models/todo_model.dart';
 import 'package:flutter_application_1/day6/new_todo.dart';
@@ -25,18 +26,46 @@ class _DaySixState extends State<DaySix> {
   double perc = 0.0;
   bool isSaved = false;
   final box = GetStorage();
+  final todosRef = FirebaseFirestore.instance
+      .collection("todos")
+      .limit(30)
+      .withConverter<TodoModel>(
+    fromFirestore: (data, snap) {
+      return TodoModel.fromMap(data.data()!);
+    },
+    toFirestore: (data, snap) {
+      return data.toMap();
+    },
+  );
 
-  void readData() async {
-    final result = await box.read("todos");
-    if (result != null) {
-      List data = result;
-      for (var element in data) {
-        Map<String, dynamic> js = element;
-        TodoModel model = TodoModel.fromMap(js);
-        todos.add(model);
+  void listenData() async {
+    todosRef.snapshots().listen((event) {
+      todos.clear();
+      for (var element in event.docs) {
+        todos.add(element.data());
       }
       setState(() {});
+    });
+    // log("firestoreResult: ${firestoreResult.docs.length}");
+  }
+
+  void readData() async {
+    final firestoreResult = await todosRef.get();
+    log("firestoreResult: ${firestoreResult.docs.length}");
+    for (var element in firestoreResult.docs) {
+      todos.add(element.data());
     }
+    setState(() {});
+    // final result = await box.read("todos");
+    // if (result != null) {
+    //   List data = result;
+    //   for (var element in data) {
+    //     Map<String, dynamic> js = element;
+    //     TodoModel model = TodoModel.fromMap(js);
+    //     todos.add(model);
+    //   }
+    //   setState(() {});
+    // }
   }
 
   void saveData() {
@@ -60,7 +89,8 @@ class _DaySixState extends State<DaySix> {
   @override
   void initState() {
     super.initState();
-    readData();
+    // readData();
+    listenData();
     //page a in create thar veleh a in call a, page in refresh pangai ah a in call nawn lo
     // tah hian initial data fetch nan hman ani thin
   }
